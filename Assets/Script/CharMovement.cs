@@ -13,6 +13,7 @@ public class CharMovement : MonoBehaviour
     public bool isDef = false;
     public bool isDancing = false;
     public bool isWalking = false;
+    public bool isTaking = false;
 
     private Animator animator;
     private CharacterController characterController;
@@ -20,6 +21,8 @@ public class CharMovement : MonoBehaviour
     private Vector3 targetDirection = Vector3.zero;
     private Vector3 moveDirection = Vector3.zero;
     private Vector3 velocity = Vector3.zero;
+
+    GameController gameController;
 
     void Awake()
     {
@@ -31,6 +34,11 @@ public class CharMovement : MonoBehaviour
     {
         Time.timeScale = 1;
         isGrounded = characterController.isGrounded;
+
+        if (gameController == null)
+        {
+            gameController = GameObject.Find("GameController").GetComponent<GameController>();
+        }
     }
 
     void Update()
@@ -82,6 +90,26 @@ public class CharMovement : MonoBehaviour
 
         // Update movement before rotation
         updateMovement();
+        if (isTaking){
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                animator.SetBool("isTaking", isTaking);
+                Debug.Log("isTaking:" + isTaking);
+                StartCoroutine(WaitforTaking(4.7f));
+                //getItem = true;
+                gameController.GetItem();
+                Debug.Log("Item:" + gameController.getItem);
+            }
+        }
+        
+    }
+
+    IEnumerator WaitforTaking(float time)
+    {
+        yield return new WaitForSeconds(time);
+        isTaking = false;
+        animator.SetBool("isTaking", isTaking);
+        Debug.Log("isTaking:" + isTaking);
     }
 
     void updateMovement()
@@ -112,4 +140,32 @@ public class CharMovement : MonoBehaviour
         Vector3 right = new Vector3(forward.z, 0.0f, -forward.x);
         targetDirection = (Input.GetAxis("Horizontal") * right) + (Input.GetAxis("Vertical") * forward);
     }//end of viewRelativeMovement
+
+
+    // void OnControllerColliderHit(ControllerColliderHit hit)
+    // {
+    //     if (hit.gameObject.tag == "Ground")
+    //     {
+    //         isGrounded = true;
+    //     }
+    // }
+
+
+        void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.tag == "item")
+        {
+            isTaking = true;
+            Debug.Log("isTaking:" + isTaking);
+        }
+    }
+
+        void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.tag == "item")
+        {
+            isTaking = false;
+            Debug.Log("isTaking:" + isTaking);
+        }
+    }
 }
